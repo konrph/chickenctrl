@@ -1,0 +1,3 @@
+ansible-docs-agent-roles==1.0.0
+ansible-docs-example-role-package==0.1.0
+ansible-docs-k8s-roles==0.2.33
