@@ -1,4 +1,3 @@
-
 import paho.mqtt.client as mqtt
 import traceback
 class Mqtt_Worker:

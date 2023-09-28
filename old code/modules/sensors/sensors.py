@@ -24,12 +24,13 @@ class EndSwitch:
     def __init__(self):
         self.config=Config().conf
         self.setUpGpios()
-
     def setUpGpios(self):
         INPUT = 0
         wiringpi.wiringPiSetupGpio()
         wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_HIGH']), INPUT)
         wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_LOW']), INPUT)
+        wiringpi.pullUpDnControl(int(self.config['SENSORS']['endSwitch_HIGH']),2)
+        wiringpi.pullUpDnControl(int(self.config['SENSORS']['endSwitch_LOW']),2)
 
     def readHigh(self):
         return wiringpi.digitalRead(int(self.config['SENSORS']['endSwitch_HIGH']))
@@ -53,16 +54,17 @@ class EndSwitch:
 
         return doorIsOpen
 
-class LightSwitch:
-    def __init__(self):
-        self.config=Config().conf
-        self.setUpGpios()
 
-    def setUpGpios(self):
-        INPUT = 0
-        wiringpi.wiringPiSetupGpio()
-        wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_1']), INPUT)
-        wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_2']), INPUT)
+#class LightSwitch:
+#    def __init__(self):
+#        self.config=Config().conf
+#        self.setUpGpios()#
+
+    #def setUpGpios(self):
+        #INPUT = 0
+        #wiringpi.wiringPiSetupGpio()
+        #wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_1']), INPUT)
+        #wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_2']), INPUT)
 
 
 class Lightsensor:
@@ -97,7 +99,6 @@ class Lightsensor:
 
         # bus = smbus.SMBus(0) # Rev 1 Pi uses 0
         self.bus = smbus.SMBus(1)  # Rev 2 Pi uses 1
-
 
     def convertToNumber(self, data):
         result = (data[1] + (256 * data[0])) / 1.2
@@ -134,5 +135,3 @@ class Lightsensor:
         self.total_average=round(sum(self.measurement)/len(self.measurement),2)
         return self.total_averag
 
-    def test(self):
-        return self.convertToNumber(self.bus.read_i2c_block_data(self.ADRESS, self.ONE_TIME_HIGH_RES_MODE_2))

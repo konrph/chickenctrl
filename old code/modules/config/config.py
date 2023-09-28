@@ -2,9 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import configparser
-
 class Config:
-
     def __init__(self):
         self.conf = self.read_config()
 

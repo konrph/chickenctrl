@@ -1,41 +1,48 @@
-import time
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from signal import pause
 from gpiozero import Button
 from modules.config.config import Config
 from modules.mqtt.mqtt import Mqtt_Worker
-from modules.sensors.sensors import EndSwitch
-from threading import Event
+import wiringpi
+wiringpi.wiringPiSetupGpio()
 
 config = Config().conf
 high = Button(int(config['SENSORS']['endSwitch_HIGH']))
 low = Button(int(config['SENSORS']['endSwitch_LOW']))
 mqtt = Mqtt_Worker(broker='127.0.0.1')
-swtich = EndSwitch()
 
+def high_press():
+    mqtt.send(topic='control/door', payload='0')
+    mqtt.send(topic='sensors/endswitch', payload=1)
 
-def on_press():
+def low_press():
+    mqtt.send(topic='control/door', payload='0')
+    mqtt.send(topic='sensors/endswitch', payload=0)
+
+def init():
+    if low.is_pressed:
+        mqtt.send(topic='control/door', payload='0')
+        mqtt.send(topic='sensors/endswitch', payload=0)
+
     if high.is_pressed:
+        mqtt.send(topic='control/door', payload='0')
         mqtt.send(topic='sensors/endswitch', payload=1)
 
-    if low.is_pressed:
-        mqtt.send(topic='sensors/endswitch', payload=0)
-def read_sensors():
-    while True:
-        highvalue = int(EndSwitch().readHigh())
-        lowvalue = int(EndSwitch().readLow())
+    if not low.is_pressed and not high.is_pressed:
+        mqtt.send(topic='control/door', payload='0')
+        mqtt.send(topic='sensors/endswitch', payload=2)
 
-        if highvalue == lowvalue:  # Door is in a faulty postion
-            mqtt.send(topic='sensors/endswitch', payload=2)
-            value = 2
-        else:
-            if highvalue == 1:  # Door is open
-                mqtt.send(topic='sensors/endswitch', payload=1)
-                value = 1
-            else:  # Door is closed
-                mqtt.send(topic='sensors/endswitch', payload=0)
-                value = 0
-        time.sleep(0.25)
 def main():
-    read_sensors()
+    init()
+
+    high.when_pressed = high_press
+    low.when_pressed = low_press
+
+
+    pause()
 
 if __name__ == "__main__":
     main()

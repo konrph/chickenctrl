@@ -1,0 +1,4 @@
+gpiozero~=1.6.2
+wiringpi
+python-dotenv
+paho-mqtt
