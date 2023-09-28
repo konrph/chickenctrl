@@ -3,19 +3,27 @@
 
 import os
 import sys
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 from modules.mqtt.mqtt import Mqtt_Worker
 from modules.sensors.sensors import Lightsensor
-import time
+
+global sensor
+
+sensor = Lightsensor()
+mqtt=Mqtt_Worker(broker='127.0.0.1',port=1883)
+
+def rw_light():
+    value = int(sensor.readLight())
+    mqtt.send(topic='sensors/light', payload=value)
 
 def main():
-    mqtt=Mqtt_Worker(broker='127.0.0.1',port=1883)
-    sensor = Lightsensor()
-    while True:
-        value=int(sensor.readLight())
-        mqtt.send(topic='sensors/light',payload=value)
-        time.sleep(0.5)
+    rw_light()
+    scheduler = BlockingScheduler()
+    scheduler.add_job(rw_light, 'interval', seconds=60)
+    scheduler.start()
 
 if __name__ == "__main__":
     main()

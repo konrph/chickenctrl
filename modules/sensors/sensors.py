@@ -2,7 +2,7 @@ from modules.config.config import Config
 import wiringpi
 import smbus
 import time
-from threading import Event
+
 
 class Temperature:
     def __init__(self):

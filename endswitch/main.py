@@ -1,12 +1,16 @@
 import os
 import sys
+import wiringpi
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from signal import pause
 from gpiozero import Button
 from modules.config.config import Config
 from modules.mqtt.mqtt import Mqtt_Worker
-import wiringpi
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+
+
 wiringpi.wiringPiSetupGpio()
 
 config = Config().conf
@@ -22,6 +26,11 @@ def low_press():
     mqtt.send(topic='control/door', payload='0')
     mqtt.send(topic='sensors/endswitch', payload=0)
 
+def init_schedule():
+    scheduler = BlockingScheduler()
+    scheduler.add_job(init, 'interval', seconds=5)
+    scheduler.start()
+
 def init():
     if low.is_pressed:
         mqtt.send(topic='control/door', payload='0')
@@ -36,6 +45,7 @@ def init():
         mqtt.send(topic='sensors/endswitch', payload=2)
 
 def main():
+    init_schedule()
     init()
 
     high.when_pressed = high_press
