@@ -20,7 +20,6 @@ class Processor:
         listener_endswitch = Mqtt_Worker(sub='sensors/endswitch', function=self.endswitch_mapper)
         listener_light = Mqtt_Worker(sub='sensors/light', function=self.light_mapper)
 
-        self.start_processes()
         self.compute()
         Event().wait()
 
@@ -70,14 +69,6 @@ class Processor:
         else:
             self.closingtime = True
             self.opentime = False
-
-    def start_processes(self):
-        print('Starting Lightsensor')
-        #p = subprocess.Popen([sys.executable, '../lightsensor/main.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        print('Starting Endswitches')
-       # p2 = subprocess.Popen([sys.executable, '../endswitch/main.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        print('Starting Engines')
-        #p3 = subprocess.Popen([sys.executable, '../engine/main.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def compute(self):
         done=None
