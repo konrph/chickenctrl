@@ -1,14 +1,15 @@
 import os
 import sys
+from signal import pause
+import time
+import threading
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-import time
 from modules.mqtt.mqtt import Mqtt_Worker
 from modules.engines.engine import Door, Feeder
-
-from signal import pause
 from modules.sensors.sensors import EndSwitch
-import threading
+
 door = Door()
 feeder = Feeder()
 
@@ -56,9 +57,10 @@ def process_commands():
             timestamp = latest_door_command["timestamp"]
 
             # Check if the command is still valid (not too old)
-            if current_time - timestamp <= 60:  # Assuming a maximum execution time of 60 seconds
+            if current_time - timestamp <= 2:  # Assuming a maximum execution time of 60 seconds
                 if command == "open":
-                    time.sleep(659)
+                    pass
+                    #time.sleep(659)
                     #door.open()
                 elif command == "stop":
                     print('stop')
@@ -78,7 +80,7 @@ def process_commands():
             if current_time - timestamp <= 60:  # Assuming a maximum execution time of 60 seconds
                 if command == "run":
                     #feeder.run()
-                    print('rund')
+                    print('run')
                 elif command == "stop":
                     print('stop')
                     #feeder.stop()

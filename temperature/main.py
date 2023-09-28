@@ -1,6 +1,11 @@
+import os
+import sys
+import time
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
 from modules.mqtt.mqtt import Mqtt_Worker
 from modules.sensors.sensors import Temperature
-import time
 
 def main():
     mqtt = Mqtt_Worker(broker='127.0.0.1',port=1883)
