@@ -98,11 +98,7 @@ def process_commands():
 
 
 def r_engien_runnig():
-    value = door.readStatus()
-    if value == 0:
-        mqtt.send(topic='sensors/engine', payload='not running')
-    else:
-        mqtt.send(topic='sensors/engine', payload='running')
+    mqtt.send(topic='sensors/engine', payload=door.readStatus())
 
 
 def init_scheduler():
