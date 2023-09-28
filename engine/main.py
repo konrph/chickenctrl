@@ -61,14 +61,17 @@ def process_commands():
             timestamp = latest_door_command["timestamp"]
 
             # Check if the command is still valid (not too old)
-            if current_time - timestamp <= 2:  # Assuming a maximum execution time of 60 seconds
+            if current_time - timestamp <= 60:  # Assuming a maximum execution time of 60 seconds
                 if command == "open":
-                    pass
-                    # time.sleep(659)
-                    # door.open()
+                    print('open')
+                    #door.open()
                 elif command == "stop":
                     print('stop')
-                    # door.stop()
+                    #door.stop()
+
+                elif command == "closing":
+                    print('closing')
+                    #door.close()
 
             # Reset the latest_door_command
             latest_door_command["command"] = None
