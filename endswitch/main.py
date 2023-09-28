@@ -45,7 +45,7 @@ def init():
         mqtt.send(topic='sensors/endswitch', payload=2)
 
 def main():
-    init_schedule()
+    #init_schedule()
     init()
 
     high.when_pressed = high_press

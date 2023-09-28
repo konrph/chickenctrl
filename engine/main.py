@@ -1,46 +1,26 @@
-import os
-import sys
-from signal import pause
 import time
-import threading
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
 from modules.mqtt.mqtt import Mqtt_Worker
 from modules.engines.engine import Door, Feeder
-from modules.sensors.sensors import EndSwitch
-from apscheduler.schedulers.blocking import BlockingScheduler
-
+from threading import Event
+import threading
 door = Door()
 feeder = Feeder()
-mqtt = Mqtt_Worker(broker='localhost')
 
 # Variables to track the latest received commands and their timestamps
 latest_door_command = {"command": None, "timestamp": None}
 latest_feeder_command = {"command": None, "timestamp": None}
-switch = EndSwitch()
-
 
 def run_door(msg):
     id = msg.payload.decode('utf-8')
     if id == '0':
-        print(0)
-        latest_door_command["command"] = "stopping"
+        latest_door_command["command"] = "stop"
         latest_door_command["timestamp"] = time.time()
-        door.stop()
     elif id == '1':
-        print(2)
-        if not switch.doorisOpen():
-            latest_door_command["command"] = "open"
-            latest_door_command["timestamp"] = time.time()
-            door.open()
+        latest_door_command["command"] = "open"
+        latest_door_command["timestamp"] = time.time()
     elif id == '2':
-        print(3)
-        if switch.doorisOpen():
-            latest_door_command["command"] = "closing"
-            latest_door_command["timestamp"] = time.time()
-            door.close()
-
+        latest_door_command["command"] = "close"
+        latest_door_command["timestamp"] = time.time()
 
 def run_feeder(msg):
     id = msg.payload.decode('utf-8')
@@ -50,7 +30,6 @@ def run_feeder(msg):
     elif id == '0':
         latest_feeder_command["command"] = "stop"
         latest_feeder_command["timestamp"] = time.time()
-
 
 def process_commands():
     while True:
@@ -67,11 +46,9 @@ def process_commands():
                     #door.open()
                 elif command == "stop":
                     print('stop')
-                    #door.stop()
-
-                elif command == "closing":
+                elif command == "close":
                     print('closing')
-                    #door.close()
+                    #door.stop()
 
             # Reset the latest_door_command
             latest_door_command["command"] = None
@@ -86,32 +63,16 @@ def process_commands():
             # Check if the command is still valid (not too old)
             if current_time - timestamp <= 60:  # Assuming a maximum execution time of 60 seconds
                 if command == "run":
-                    # feeder.run()
-                    print('run')
+                    feeder.run()
                 elif command == "stop":
-                    print('stop')
-                    # feeder.stop()
+                    feeder.stop()
 
             # Reset the latest_feeder_command
             latest_feeder_command["command"] = None
             latest_feeder_command["timestamp"] = None
 
-        # Sleep for a short interval before checking for new commands again
-        time.sleep(1)
-
-
-def r_engien_runnig():
-    mqtt.send(topic='sensors/engine', payload=door.readStatus())
-
-
-def init_scheduler():
-    scheduler = BlockingScheduler()
-    scheduler.add_job(r_engien_runnig, 'interval', seconds=1)
-    scheduler.start()
-
 
 def main():
-    init_scheduler()
     door_thread = Mqtt_Worker(broker='127.0.0.1', port=1883, function=run_door, sub='control/door')
     feeder_thread = Mqtt_Worker(broker='127.0.0.1', port=1883, function=run_feeder, sub='control/feeder')
 
@@ -119,8 +80,10 @@ def main():
     command_thread = threading.Thread(target=process_commands)
     command_thread.daemon = True
     command_thread.start()
-    pause()
+    Event().wait()
 
+    # The door_thread and feeder_thread will continue running in the background
+    # without blocking the main thread.
 
 if __name__ == "__main__":
     main()
