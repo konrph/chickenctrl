@@ -5,12 +5,15 @@ import time
 import multiprocessing
 import threading
 from flask import Flask
+from modules.sensors.sensors import Lightsensor
 lock = threading.Lock()
 app = Flask(__name__)
 
 # Process objects for openDoor and closeDoor functions
 open_process = None
 close_process = None
+
+ls = Lightsensor()
 
 def openDoorProcess():
     ############ Dummy Function
@@ -34,7 +37,6 @@ def openDoor():
         open_process.start()
         open_process.join()
     return json.dumps({'result': 'ok'})
-
 
 @app.route('/control/door/close')
 def closeDoor():
@@ -61,6 +63,11 @@ def stopDoor():
     #TODO Add Engine Stop
 
     return json.dumps({'result': 'ok'})
+
+@app.route('/get/light')
+def readLight():
+    return json.dumps({'value': int(ls.get_highres())})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

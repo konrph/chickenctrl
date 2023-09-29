@@ -106,6 +106,14 @@ class Lightsensor:
     def collect_values(self):
         return self.convertToNumber(self.bus.read_i2c_block_data(self.ADRESS, self.ONE_TIME_LOW_RES_MODE))
 
+    def get_lowres(self):
+        return self.convertToNumber(self.bus.read_i2c_block_data(self.ADRESS, self.ONE_TIME_LOW_RES_MODE))
+
+    def get_highres(self):
+        return self.convertToNumber(self.bus.read_i2c_block_data(self.ADRESS, self.CONTINUOUS_HIGH_RES_MODE_1))
+    def get_highres2(self):
+        return self.convertToNumber(self.bus.read_i2c_block_data(self.ADRESS, self.CONTINUOUS_HIGH_RES_MODE_2))
+
     def remove_high_low(self,values):
         if values:
             if len(values)==10:
