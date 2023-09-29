@@ -2,6 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 import configparser
+import os
+
 
 class Config:
 
@@ -10,5 +12,7 @@ class Config:
 
     def read_config(self):
         config = configparser.ConfigParser(strict=True)
+        print(os.getcwd())
         config.read('../chickenctrl.conf')
+        print(config.sections())
         return config

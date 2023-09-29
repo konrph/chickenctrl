@@ -43,12 +43,13 @@ def process_commands():
             if current_time - timestamp <= 60:  # Assuming a maximum execution time of 60 seconds
                 if command == "open":
                     print('open')
-                    #door.open()
+                    door.open()
                 elif command == "stop":
                     print('stop')
+                    door.stop()
                 elif command == "close":
                     print('closing')
-                    #door.stop()
+                    door.close()
 
             # Reset the latest_door_command
             latest_door_command["command"] = None
