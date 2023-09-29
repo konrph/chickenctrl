@@ -13,8 +13,15 @@ open_process = None
 close_process = None
 
 def openDoorProcess():
-    while True:
-        print('Running openDoor')  # Simulate a long-running operation
+    ############ Dummy Function
+    for i in range(1, 11):
+        print('opening')
+        time.sleep(1)
+
+def closeDoorProcess():
+    ############ Dummy Function
+    for i in range(1, 11):
+        print('opening')
         time.sleep(1)
 
 @app.route('/control/door/open')
@@ -35,7 +42,7 @@ def closeDoor():
     with lock:
         if close_process and close_process.is_alive():
             return json.dumps({'result': 'already running'})
-        close_process = multiprocessing.Process(target=openDoorProcess)
+        close_process = multiprocessing.Process(target=closeDoorProcess)
         close_process.start()
         close_process.join()
     return json.dumps({'result': 'ok'})
@@ -50,6 +57,8 @@ def stopDoor():
 
     if close_process and close_process.is_alive():
         close_process.terminate()  # Terminate the openDoor process
+
+    #TODO Add Engine Stop
 
     return json.dumps({'result': 'ok'})
 
