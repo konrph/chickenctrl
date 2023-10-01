@@ -2,11 +2,13 @@ import time
 from modules.config.config import Config
 import wiringpi
 import multiprocessing
+from ..sensors.sensors import EndSwitch
 
 class Door:
     def __init__(self):
         self.config=Config().conf
         self.setUpGpios()
+        self.es = EndSwitch()
         self.emergencystop_process = multiprocessing.Process(target=self.emergencystop)
 
     def setUpGpios(self):
@@ -17,16 +19,22 @@ class Door:
 
     def open(self):
         self.stop()
-        wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),1)
-        wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),0)
-        self.start_emergencystop()
+        if self.es.readHigh() == 0 and self.es.doorisOpen() != None:
+            wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),1)
+            wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),0)
+            while self.es.readHigh() != 1:
+                None
+        self.stop()
 
     def close(self):
         self.stop()
+        if self.es.readLow() == 0 and self.es.doorisOpen() != None:
+            wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),0)
+            wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),1)
+        while self. es.readLow() != 1:
+            None
+        self.stop()
 
-        wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),0)
-        wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),1)
-        self.start_emergencystop()
 
     def stop(self):
         wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),0)

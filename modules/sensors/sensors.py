@@ -29,7 +29,9 @@ class EndSwitch:
         INPUT = 0
         wiringpi.wiringPiSetupGpio()
         wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_HIGH']), INPUT)
+        #wiringpi.pullUpDnControl(int(self.config['SENSORS']['endSwitch_HIGH']), 2)
         wiringpi.pinMode(int(self.config['SENSORS']['endSwitch_LOW']), INPUT)
+        #wiringpi.pullUpDnControl(int(self.config['SENSORS']['endSwitch_LOW']), 2)
 
     def readHigh(self):
         return wiringpi.digitalRead(int(self.config['SENSORS']['endSwitch_HIGH']))
@@ -42,12 +44,12 @@ class EndSwitch:
         high = int(self.readHigh())
         if low == high:
             doorIsOpen = None
-        elif high == 1 and low == 0:
+        elif high == 0 and low == 1:
             doorIsOpen = False
-            #door is close
-        elif high == 0 and low == 1 :
-            doorIsOpen = True
             #door is open
+        elif high == 1 and low == 0 :
+            doorIsOpen = True
+            #door is close
         else:
             doorIsOpen = None
 

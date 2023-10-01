@@ -4,7 +4,6 @@
 import configparser
 import os
 
-
 class Config:
 
     def __init__(self):
@@ -12,7 +11,5 @@ class Config:
 
     def read_config(self):
         config = configparser.ConfigParser(strict=True)
-        print(os.getcwd())
         config.read('../chickenctrl.conf')
-        print(config.sections())
         return config
