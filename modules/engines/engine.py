@@ -17,18 +17,18 @@ class Door:
         wiringpi.pinMode(int(self.config['ENGINES']['doorpin_1']), OUTPUT)
         wiringpi.pinMode(int(self.config['ENGINES']['doorpin_2']), OUTPUT)
 
-    def open(self):
+    def open(self, unsafe=False):
         self.stop()
-        if self.es.readHigh() == 0 and self.es.doorisOpen() != None:
+        if self.es.readHigh() == 0 and (self.es.doorisOpen() != None or unsafe == True):
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),1)
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),0)
             while self.es.readHigh() != 1:
                 None
         self.stop()
 
-    def close(self):
+    def close(self,unsafe=False):
         self.stop()
-        if self.es.readLow() == 0 and self.es.doorisOpen() != None:
+        if self.es.readLow() == 0 and (self.es.doorisOpen() != None or unsafe == True):
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),0)
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),1)
         while self. es.readLow() != 1:

@@ -30,7 +30,7 @@ def is_dark_enough():
     return False
 
 # Function to check if it's time to open the door in the morning
-def is_time_to_open(opening_time):
+def is_time_to_open():
     global conf
     current_date_time = datetime.now()
     opening_time = datetime.strptime(conf['TIMING']['open'], '%H:%M').replace(year=current_date_time.year,
@@ -55,6 +55,13 @@ def open_door():
         return result == 'ok'
     return False
 
+def stop_door():
+    response = requests.get(f'{base_url}/control/door/stop')
+    if response.status_code == 200:
+        result = response.json().get('result')
+        return result == 'ok'
+    return False
+
 # Function to close the door
 def close_door():
     response = requests.get(f'{base_url}/control/door/close')
@@ -74,24 +81,23 @@ def read_door():
 def main():
     read_config()
     while True:
-
         try:
             if read_door() == False:
                 # door is close
                 if not is_time_to_close():
                     if is_time_to_open() or is_bright_enough():
-                        state = 'open'
-
+                        open_door()
 
             if read_door() == True:
                 # door is open
                 if is_time_to_close() or not is_bright_enough():
-                    state = 'close'
+                    close_door()
 
             # Sleep for a specified interval (e.g., 5 minutes)
             # Adjust the sleep interval as needed
-            time.sleep(300)  # 5 minutes
+            time.sleep(1)  # 5 minutes
         except KeyboardInterrupt:
+            stop_door()
             break
 
 if __name__ == '__main__':

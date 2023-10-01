@@ -28,21 +28,15 @@ def read_config():
 
 def openDoorProcess():
     global d, timeout
-    #d.open()
-    print('Start opening')
+    d.open(unsafe=True)
     time.sleep(timeout)
-    print('Finished Opening')
-    print()
 
 
 def closeDoorProcess():
     global d, timeout
-    #d.close()
-
-    print('Start Closing')
+    print('here')
+    d.close(unsafe=True)
     time.sleep(timeout)
-    print('Finished Closing')
-    print()
 
 
 @app.route('/control/door/open')
