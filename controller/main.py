@@ -1,8 +1,15 @@
+#!/usr/bin python3
+# encoding: utf-8
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
 import requests
 import time
-from datetime import datetime
 from  modules.config.config import Config
 from datetime import datetime
+
 
 base_url = 'http://localhost:5000'
 
