@@ -72,10 +72,12 @@ def stopDoor():
     global open_process, close_process,d
 
     if open_process and open_process.is_alive():
-        open_process.terminate()  # Terminate the openDoor process
+        while open_process.is_alive():
+            open_process.terminate()  # Terminate the openDoor process
 
     if close_process and close_process.is_alive():
-        close_process.terminate()  # Terminate the closeDoor process
+        while close_process.is_alive():
+            close_process.terminate()  # Terminate the closeDoor process
 
     d.stop()
 
@@ -85,24 +87,22 @@ def stopDoor():
 @app.route('/control/door/manual/close')
 def manualClose():
     with manlock:
-        with lock:
-            stopDoor()
-            time.sleep(0.2)
-            stopDoor()
-            time.sleep(0.2)
-            closeDoor(time=calculate_next_event())
+        stopDoor()
+        time.sleep(0.5)
+        stopDoor()
+        time.sleep(0.5)
+        closeDoor(time=calculate_next_event())
     return json.dumps({'result': 'ok', 'value': None })
 
 
 @app.route('/control/door/manual/open')
 def manualOpen():
     with manlock:
-        with lock:
-            stopDoor()
-            time.sleep(0.2)
-            stopDoor()
-            time.sleep(0.2)
-            openDoor(time=calculate_next_event())
+        stopDoor()
+        time.sleep(0.5)
+        stopDoor()
+        time.sleep(0.5)
+        openDoor(time=calculate_next_event())
     return json.dumps({'result': 'ok', 'value': None })
 
 @app.route('/get/light')
