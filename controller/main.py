@@ -81,7 +81,6 @@ def read_door():
     response = requests.get(f'{base_url}/get/door/position')
     if response.status_code == 200:
         result = response.json().get('value')
-        result= True
         return result
 
     return False
@@ -93,15 +92,16 @@ def main():
         try:
             if read_door() == False:
                 # door is close
-
                 if not is_time_to_close() and is_bright_enough() == True:
-
                     if is_time_to_open() or is_bright_enough():
+                        print('Open Door')
                         open_door()
+
 
             if read_door() == True:
                 # door is open
                 if is_time_to_close() or is_bright_enough() == False:
+                    print('Close Door')
                     close_door()
 
             # Sleep for a specified interval (e.g., 5 minutes)

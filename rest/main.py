@@ -39,7 +39,6 @@ def openDoorProcess():
 
 def closeDoorProcess():
     global d, timeout
-    print('here')
     d.close(unsafe=True)
     time.sleep(timeout)
 
@@ -86,18 +85,24 @@ def stopDoor():
 @app.route('/control/door/manual/close')
 def manualClose():
     with manlock:
-        stopDoor()
-        time.sleep(0.1)
-        closeDoor(time=calculate_next_event())
+        with lock:
+            stopDoor()
+            time.sleep(0.2)
+            stopDoor()
+            time.sleep(0.2)
+            closeDoor(time=calculate_next_event())
     return json.dumps({'result': 'ok', 'value': None })
 
 
 @app.route('/control/door/manual/open')
 def manualOpen():
     with manlock:
-        stopDoor()
-        time.sleep(0.1)
-        openDoor(time=calculate_next_event())
+        with lock:
+            stopDoor()
+            time.sleep(0.2)
+            stopDoor()
+            time.sleep(0.2)
+            openDoor(time=calculate_next_event())
     return json.dumps({'result': 'ok', 'value': None })
 
 @app.route('/get/light')
