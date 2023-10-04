@@ -125,7 +125,7 @@ def getEndswitchLow():
 @app.route('/get/door/position')
 def getDoorPosition():
     global es
-    r@app.route('/get/light')
+    return json.dumps({'result': 'ok', 'value': es.doorisOpen()})
 
 @app.route('/get/temp1')
 def readTemp1():
@@ -136,6 +136,7 @@ def readTemp1():
 def readTemp2():
     global ts
     return json.dumps({'value': ts.readTempSensor2()})
+
 
 def calculate_next_event():
     global conf
@@ -170,6 +171,8 @@ def calculate_next_event():
     seconds_until_event = time_until_event.total_seconds()
 
     return int(seconds_until_event - (2*60*60))
+
+
 
 if __name__ == '__main__':
     read_config()
