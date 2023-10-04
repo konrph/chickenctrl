@@ -133,7 +133,7 @@ def readTemp1():
     return json.dumps({'value': ts.readTempSensor1()})
 
 @app.route('/get/temp2')
-def readTemp1():
+def readTemp2():
     global ts
     return json.dumps({'value': ts.readTempSensor2()})
 
