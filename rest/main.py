@@ -8,11 +8,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 import multiprocessing
 import threading
 import time
-from flask import Flask, jsonify, json
-from modules.sensors.sensors import Lightsensor, EndSwitch
+from flask import Flask, json
+from modules.sensors.sensors import Lightsensor, EndSwitch, Temperature
 from modules.engines.engine import Door
 from modules.config.config import Config
 from datetime import datetime,timedelta
+
 lock = threading.Lock()
 manlock = threading.Lock()
 app = Flask(__name__)
@@ -25,6 +26,7 @@ global es
 global d
 ls = Lightsensor()
 es = EndSwitch()
+ts = Temperature()
 d = Door()
 
 def read_config():
@@ -123,8 +125,17 @@ def getEndswitchLow():
 @app.route('/get/door/position')
 def getDoorPosition():
     global es
-    return json.dumps({'result': 'ok', 'value': es.doorisOpen()})
+    r@app.route('/get/light')
 
+@app.route('/get/temp1')
+def readTemp1():
+    global ts
+    return json.dumps({'value': ts.readTempSensor1()})
+
+@app.route('/get/temp2')
+def readTemp1():
+    global ts
+    return json.dumps({'value': ts.readTempSensor2()})
 
 def calculate_next_event():
     global conf
@@ -159,8 +170,6 @@ def calculate_next_event():
     seconds_until_event = time_until_event.total_seconds()
 
     return int(seconds_until_event - (2*60*60))
-
-
 
 if __name__ == '__main__':
     read_config()
