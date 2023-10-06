@@ -24,10 +24,12 @@ close_process = None
 
 global es
 global d
+global timeout
 ls = Lightsensor()
 es = EndSwitch()
 ts = Temperature()
 d = Door()
+timeout = 0
 
 def read_config():
     global conf
