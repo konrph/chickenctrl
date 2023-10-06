@@ -39,13 +39,21 @@ def openDoorProcess():
     global d, timeout
     d.open(unsafe=True)
     time.sleep(timeout)
+    do_sleep()
 
 
 def closeDoorProcess():
     global d, timeout
     d.close(unsafe=True)
-    time.sleep(timeout)
+    do_sleep()
 
+def do_sleep():
+    global timeout
+    i = timeout
+    while i >= 0:
+        time.sleep(1)
+        i -= 1
+        timeout = i
 
 @app.route('/control/door/open')
 def openDoor(time=0):
