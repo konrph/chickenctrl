@@ -136,7 +136,10 @@ def readTemp1():
 def readTemp2():
     global ts
     return json.dumps({'value': ts.readTempSensor2()})
-
+@app.route('/get/timeout')
+def readTimeout():
+    global timeout
+    return json.dumps({'value': timeout})
 
 def calculate_next_event():
     global conf
