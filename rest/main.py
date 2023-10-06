@@ -90,7 +90,7 @@ def stopDoor():
     if close_process and close_process.is_alive():
         while close_process.is_alive():
             close_process.terminate()  # Terminate the closeDoor process
-
+    time.sleep(0.25)
     d.stop()
 
     return json.dumps({'result': 'ok', 'value':'null'})
@@ -100,9 +100,6 @@ def stopDoor():
 def manualClose():
     with manlock:
         stopDoor()
-        time.sleep(0.5)
-        stopDoor()
-        time.sleep(0.5)
         closeDoor(time=calculate_next_event())
     return json.dumps({'result': 'ok', 'value': None })
 
@@ -111,9 +108,6 @@ def manualClose():
 def manualOpen():
     with manlock:
         stopDoor()
-        time.sleep(0.5)
-        stopDoor()
-        time.sleep(0.5)
         openDoor(time=calculate_next_event())
     return json.dumps({'result': 'ok', 'value': None })
 
