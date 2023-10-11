@@ -18,6 +18,9 @@ lock = threading.Lock()
 manlock = threading.Lock()
 app = Flask(__name__)
 
+
+global open_process
+global close_process
 # Process objects for openDoor and closeDoor functions
 open_process = None
 close_process = None
@@ -38,13 +41,13 @@ def read_config():
 
 
 def openDoorProcess():
-    global d, timeout
+    global d
     d.open(unsafe=True)
     do_sleep()
 
 
 def closeDoorProcess():
-    global d, timeout
+    global d
     d.close(unsafe=True)
     do_sleep()
 
@@ -85,17 +88,13 @@ def closeDoor(time=0):
 @app.route('/control/door/stop')
 def stopDoor():
     global open_process, close_process, d
-
     if open_process and open_process.is_alive():
-        while open_process.is_alive():
-            open_process.terminate()  # Terminate the openDoor process
-            open_process = None
+            while open_process.is_alive():
+                open_process.terminate()  # Terminate the openDoor process
 
     if close_process and close_process.is_alive():
-        while close_process.is_alive():
-            close_process.terminate()  # Terminate the closeDoor process
-            close_process = None
-    time.sleep(0.25)
+            while close_process.is_alive():
+                close_process.terminate()  # Terminate the closeDoor process
     d.stop()
 
     return json.dumps({'result': 'ok', 'value': 'null'})
@@ -194,3 +193,4 @@ def calculate_next_event():
 if __name__ == '__main__':
     read_config()
     app.run(host='0.0.0.0', port=5000)
+

@@ -20,8 +20,11 @@ class Door:
     def open(self, unsafe=False):
         self.stop()
         if self.es.readHigh() == 0 and (self.es.doorisOpen() != None or unsafe == True):
+            time.sleep(0.01)
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),1)
+            time.sleep(0.01)
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),0)
+            time.sleep(0.01)
             while self.es.readHigh() != 1:
                 None
         self.stop()
@@ -29,16 +32,22 @@ class Door:
     def close(self,unsafe=False):
         self.stop()
         if self.es.readLow() == 0 and (self.es.doorisOpen() != None or unsafe == True):
+            time.sleep(0.01)
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),0)
+            time.sleep(0.01)
             wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),1)
-        while self. es.readLow() != 1:
+            time.sleep(0.01)
+        while self.es.readLow() != 1:
             None
         self.stop()
 
 
     def stop(self):
+        time.sleep(0.01)
         wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_1']),0)
+        time.sleep(0.01)
         wiringpi.digitalWrite(int(self.config['ENGINES']['doorpin_2']),0)
+        time.sleep(0.01)
 
     def readStatus(self):
         if wiringpi.digitalRead(int(self.config['ENGINES']['doorpin_1'])) or wiringpi.digitalRead(int(self.config['ENGINES']['doorpin_2'])):
