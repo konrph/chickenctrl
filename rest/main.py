@@ -14,183 +14,201 @@ from modules.engines.engine import Door
 from modules.config.config import Config
 from datetime import datetime, timedelta
 
-lock = threading.Lock()
-manlock = threading.Lock()
 app = Flask(__name__)
 
 
-global open_process
-global close_process
-# Process objects for openDoor and closeDoor functions
-open_process = None
-close_process = None
+class Rest:
+    def __init__(self):
+        self.conf = Config().conf
+        self.lock = threading.Lock()
+        self.manlock = threading.Lock()
+        self.open_process = None
+        self.close_process = None
+        self.ls = Lightsensor()
+        self.es = EndSwitch()
+        self.ts = Temperature()
+        self.door = Door()
+        self.timeout = multiprocessing.Value('i', 0)
 
-global es
-global d
-global timeout
-ls = Lightsensor()
-es = EndSwitch()
-ts = Temperature()
-d = Door()
-timeout = 0
+    def openDoorProcess(self):
+        self.door.open(unsafe=True)
+        self.do_sleep()
 
+    def closeDoorProcess(self):
+        self.door.close(unsafe=True)
+        self.do_sleep()
 
-def read_config():
-    global conf
-    conf = Config().conf
-
-
-def openDoorProcess():
-    global d
-    d.open(unsafe=True)
-    do_sleep()
-
-
-def closeDoorProcess():
-    global d
-    d.close(unsafe=True)
-    do_sleep()
+    def do_sleep(self):
+        while self.timeout.value >= 0:
+            time.sleep(1)
+            self.timeout.value -= 1
 
 
-def do_sleep():
-    global timeout
-    i = timeout
-    while i >= 0:
-        time.sleep(1)
-        i -= 1
-        timeout = i
+    def openDoor(self, time=0):
+        with self.lock:
+            self.timeout.value = time
+            if self.close_process and self.close_process.is_alive() or self.open_process and self.open_process.is_alive():
+                return json.dumps({'result': 'already running'})
+            open_process = multiprocessing.Process(target=self.openDoorProcess)
+            open_process.start()
+        return json.dumps({'result': 'ok', 'value': 'null'})
 
+    def closeDoor(self, time=0):
+        with self.lock:
+            self.timeout.value = time
+            if self.close_process and self.close_process.is_alive() or self.open_process and self.open_process.is_alive():
+                return json.dumps({'result': 'already running'})
+            close_process = multiprocessing.Process(target=self.closeDoorProcess)
+            close_process.start()
+        return json.dumps({'result': 'ok', 'value': 'null'})
 
-@app.route('/control/door/open')
-def openDoor(time=0):
-    global close_process, open_process, timeout
-    with lock:
-        timeout = time
-        if close_process and close_process.is_alive() or open_process and open_process.is_alive():
-            return json.dumps({'result': 'already running'})
-        open_process = multiprocessing.Process(target=openDoorProcess)
-        open_process.start()
-    return json.dumps({'result': 'ok', 'value': 'null'})
+    def stopDoor(self):
+        if self.open_process and self.open_process.is_alive():
+            while self.open_process.is_alive():
+                self.open_process.terminate()  # Terminate the openDoor process
 
+        if self.close_process and self.close_process.is_alive():
+            while self.close_process.is_alive():
+                self.close_process.terminate()  # Terminate the closeDoor process
+        self.door.stop()
+        return json.dumps({'result': 'ok', 'value': 'null'})
 
-@app.route('/control/door/close')
-def closeDoor(time=0):
-    global close_process, open_process, timeout
-    with lock:
-        timeout = time
-        if close_process and close_process.is_alive() or open_process and open_process.is_alive():
-            return json.dumps({'result': 'already running'})
-        close_process = multiprocessing.Process(target=closeDoorProcess)
-        close_process.start()
-    return json.dumps({'result': 'ok', 'value': 'null'})
+    def manualClose(self):
+        with self.manlock:
+            self.stopDoor()
+            self.closeDoor(time=self.calculate_next_event())
+        return json.dumps({'result': 'ok', 'value': None})
 
+    def manualOpen(self):
+        with self.manlock:
+            self.stopDoor()
+            self.openDoor(time=self.calculate_next_event())
+        return json.dumps({'result': 'ok', 'value': None})
 
-@app.route('/control/door/stop')
-def stopDoor():
-    global open_process, close_process, d
-    if open_process and open_process.is_alive():
-            while open_process.is_alive():
-                open_process.terminate()  # Terminate the openDoor process
+    def readLight(self):
+        return json.dumps({'result': 'ok', 'value': int(self.ls.get_highres())})
 
-    if close_process and close_process.is_alive():
-            while close_process.is_alive():
-                close_process.terminate()  # Terminate the closeDoor process
-    d.stop()
+    def getEndswitchHigh(self):
+        return json.dumps({'value': self.es.readHigh()})
 
-    return json.dumps({'result': 'ok', 'value': 'null'})
+    def getEndswitchLow(self):
+        return json.dumps({'value': self.es.readLow()})
 
+    def getDoorPosition(self):
+        return json.dumps({'result': 'ok', 'value': self.es.doorisOpen()})
 
-@app.route('/control/door/manual/close')
-def manualClose():
-    with manlock:
-        stopDoor()
-        closeDoor(time=calculate_next_event())
-    return json.dumps({'result': 'ok', 'value': None})
+    def readTemp1(self):
+        try:
+            return json.dumps({'value': self.ts.readTempSensor1()})
+        except:
+            return json.dumps({'value': None})
 
+    def readTemp2(self):
+        try:
+            return json.dumps({'value': self.ts.readTempSensor2()})
+        except:
+            return json.dumps({'value': None})
 
-@app.route('/control/door/manual/open')
-def manualOpen():
-    with manlock:
-        stopDoor()
-        openDoor(time=calculate_next_event())
-    return json.dumps({'result': 'ok', 'value': None})
+    def readTimeout(self):
+        return json.dumps({'value': self.timeout.value})
 
+    def calculate_next_event(self):
 
-@app.route('/get/light')
-def readLight():
-    return json.dumps({'result': 'ok', 'value': int(ls.get_highres())})
+        current_date_time = datetime.now()
 
+        # Calculate the opening and closing times for the current day
+        opening_time = datetime.strptime(self.conf['TIMING']['open'], '%H:%M').replace(
+            year=current_date_time.year,
+            month=current_date_time.month,
+            day=current_date_time.day
+        )
 
-@app.route('/get/endswitch/high')
-def getEndswitchHigh():
-    return json.dumps({'value': es.readHigh()})
+        closing_time = datetime.strptime(self.conf['TIMING']['close'], '%H:%M').replace(
+            year=current_date_time.year,
+            month=current_date_time.month,
+            day=current_date_time.day
+        )
 
+        next_day_opening_time = opening_time + timedelta(days=1)
 
-@app.route('/get/endswitch/low')
-def getEndswitchLow():
-    return json.dumps({'value': es.readLow()})
+        if current_date_time < opening_time:
+            next_event = "Opening"
+            time_until_event = opening_time - current_date_time
+        elif closing_time <= current_date_time < next_day_opening_time:
+            next_event = "Opening"
+            time_until_event = next_day_opening_time - current_date_time
+        else:
+            next_event = "Closing"
+            time_until_event = closing_time - current_date_time
 
+        # Calculate the number of seconds until the next event
+        seconds_until_event = time_until_event.total_seconds()
 
-@app.route('/get/door/position')
-def getDoorPosition():
-    global es
-    return json.dumps({'result': 'ok', 'value': es.doorisOpen()})
-
-
-@app.route('/get/temp1')
-def readTemp1():
-    global ts
-    return json.dumps({'value': ts.readTempSensor1()})
-
-
-@app.route('/get/temp2')
-def readTemp2():
-    global ts
-    return json.dumps({'value': ts.readTempSensor2()})
+        return abs(int(seconds_until_event - (2 * 60 * 60)))
 
 
 @app.route('/get/timeout')
-def readTimeout():
-    global timeout
-    return json.dumps({'value': timeout})
+def get_timeout():
+    return r.readTimeout()
+
+@app.route('/get/temp2')
+def get_temp2():
+    return r.readTemp2()
 
 
-def calculate_next_event():
-    global conf
-    current_date_time = datetime.now()
-
-    # Calculate the opening and closing times for the current day
-    opening_time = datetime.strptime(conf['TIMING']['open'], '%H:%M').replace(
-        year=current_date_time.year,
-        month=current_date_time.month,
-        day=current_date_time.day
-    )
-
-    closing_time = datetime.strptime(conf['TIMING']['close'], '%H:%M').replace(
-        year=current_date_time.year,
-        month=current_date_time.month,
-        day=current_date_time.day
-    )
-
-    next_day_opening_time = opening_time + timedelta(days=1)
-
-    if current_date_time < opening_time:
-        next_event = "Opening"
-        time_until_event = opening_time - current_date_time
-    elif closing_time <= current_date_time < next_day_opening_time:
-        next_event = "Opening"
-        time_until_event = next_day_opening_time - current_date_time
-    else:
-        next_event = "Closing"
-        time_until_event = closing_time - current_date_time
-
-    # Calculate the number of seconds until the next event
-    seconds_until_event = time_until_event.total_seconds()
-
-    return abs(int(seconds_until_event - (2 * 60 * 60)))
+@app.route('/get/temp1')
+def get_temp1():
+    return r.readTemp1()
 
 
-if __name__ == '__main__':
-    read_config()
+@app.route('/get/door/position')
+def get_door_position():
+    return r.getDoorPosition()
+
+
+@app.route('/get/endswitch/low')
+def get_endswitch_low():
+    return r.getEndswitchLow()
+
+
+@app.route('/get/endswitch/high')
+def get_endswitch_high():
+    return r.getEndswitchHigh()
+
+@app.route('/get/light')
+def get_light():
+    return r.readLight()
+
+
+@app.route('/control/door/manual/open')
+def control_door_manual_open():
+    return r.manualOpen()
+
+@app.route('/control/door/manual/close')
+def control_door_manual_close():
+    return r.manualClose()
+
+
+@app.route('/control/door/open')
+def control_door_open():
+    return r.openDoor(time=0)
+
+
+
+@app.route('/control/door/close')
+def control_door_close():
+    return r.closeDoor(time=0)
+
+
+@app.route('/control/door/stop')
+def control_door_stop():
+    return r.stopDoor()
+
+
+def main():
     app.run(host='0.0.0.0', port=5000)
 
+
+r = Rest()
+if __name__ == '__main__':
+    main()
