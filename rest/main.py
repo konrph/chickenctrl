@@ -39,10 +39,9 @@ class Rest:
         self.do_sleep()
 
     def do_sleep(self):
-        while self.timeout.value >= 0:
+        while self.timeout.value > 0:
             time.sleep(1)
             self.timeout.value -= 1
-
 
     def openDoor(self, time=0):
         with self.lock:
@@ -151,6 +150,7 @@ class Rest:
 def get_timeout():
     return r.readTimeout()
 
+
 @app.route('/get/temp2')
 def get_temp2():
     return r.readTemp2()
@@ -175,6 +175,7 @@ def get_endswitch_low():
 def get_endswitch_high():
     return r.getEndswitchHigh()
 
+
 @app.route('/get/light')
 def get_light():
     return r.readLight()
@@ -184,6 +185,7 @@ def get_light():
 def control_door_manual_open():
     return r.manualOpen()
 
+
 @app.route('/control/door/manual/close')
 def control_door_manual_close():
     return r.manualClose()
@@ -192,7 +194,6 @@ def control_door_manual_close():
 @app.route('/control/door/open')
 def control_door_open():
     return r.openDoor(time=0)
-
 
 
 @app.route('/control/door/close')
