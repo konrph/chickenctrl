@@ -143,7 +143,7 @@ class Rest:
         # Calculate the number of seconds until the next event
         seconds_until_event = time_until_event.total_seconds()
 
-        return abs(int(seconds_until_event - (2 * 60 * 60)))
+        return abs(int(seconds_until_event))
 
 
 @app.route('/get/timeout')
