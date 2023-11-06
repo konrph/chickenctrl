@@ -142,7 +142,7 @@ class Rest:
 
         # Calculate the number of seconds until the next event
         seconds_until_event = time_until_event.total_seconds()
-
+        print(abs(int(seconds_until_event)))
         return abs(int(seconds_until_event))
 
 
