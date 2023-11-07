@@ -51,9 +51,9 @@ class Door:
 
     def readStatus(self):
         if wiringpi.digitalRead(int(self.config['ENGINES']['doorpin_1'])) or wiringpi.digitalRead(int(self.config['ENGINES']['doorpin_2'])):
-            return 1 #engine is moving
+            return True #engine is moving
         else:
-            return 0 #engine stopped
+            return False #engine stopped
 
     def start_emergencystop(self):
         if self.emergencystop_process.is_alive():

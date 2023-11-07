@@ -43,6 +43,9 @@ class Rest:
             time.sleep(1)
             self.timeout.value -= 1
 
+    def doormoving(self):
+        return json.dumps({f'result': 'ok', 'value': {self.door.readStatus()}})
+
     def openDoor(self, time=0):
         with self.lock:
             self.timeout.value = time
@@ -165,6 +168,9 @@ def reset_timeout():
 def get_temp2():
     return r.readTemp2()
 
+@app.route('/get/doormovment')
+def get_door_move():
+    return r.doormoving()
 
 @app.route('/get/temp1')
 def get_temp1():

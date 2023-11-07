@@ -36,6 +36,19 @@ def is_dark_enough():
         return light_value < int(int(conf['TIMING']['light_close']))  # Example threshold: 50
     return False
 
+
+def is_moving():
+    response = requests.get(f'{base_url}/get/doormovment')
+    if response.status_code == 200:
+        moving = response.json().get('value')
+        # Adjust this threshold value as per your darkness criteria
+        if moving == 'True':
+            return True
+        elif moving == 'False':
+            return False
+        else:
+            return None
+
 # Function to check if it's time to open the door in the morning
 def is_time_to_open():
     global conf
@@ -82,7 +95,6 @@ def read_door():
     if response.status_code == 200:
         result = response.json().get('value')
         return result
-
     return False
 
 # Main controller logic
@@ -93,20 +105,18 @@ def main():
             if read_door() == False:
                 # door is close
                 if not is_time_to_close() and is_bright_enough() == True:
-                    if is_time_to_open() or is_bright_enough():
+                    if is_time_to_open() or is_bright_enough() and not is_moving():
                         print('Open Door')
                         open_door()
 
 
             if read_door() == True:
                 # door is open
-                if is_time_to_close() or is_bright_enough() == False:
+                if is_time_to_close() or is_bright_enough() == False and not is_moving():
                     print('Close Door')
                     close_door()
 
-            # Sleep for a specified interval (e.g., 5 minutes)
-            # Adjust the sleep interval as needed
-            time.sleep(1)  # 5 minutes
+            time.sleep(10)  # 5 minutes
         except KeyboardInterrupt:
             stop_door()
             break
