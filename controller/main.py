@@ -106,17 +106,17 @@ def main():
                 # door is close
                 if not is_time_to_close() and is_bright_enough() == True:
                     if is_time_to_open() or is_bright_enough() and not is_moving():
-                        print('Open Door')
+                        print('Open Door Automatic')
                         open_door()
 
 
             if read_door() == True:
                 # door is open
                 if is_time_to_close() or is_bright_enough() == False and not is_moving():
-                    print('Close Door')
+                    print('Close Door Automatic')
                     close_door()
 
-            time.sleep(1)  # 5 minutes
+            time.sleep(1)
         except KeyboardInterrupt:
             stop_door()
             break

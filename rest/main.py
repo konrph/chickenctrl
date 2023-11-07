@@ -47,22 +47,28 @@ class Rest:
         return json.dumps({f'result': 'ok', 'value': {self.door.readStatus()}})
 
     def openDoor(self, time=0):
-        with self.lock:
-            self.timeout.value = time
-            if self.close_process and self.close_process.is_alive() or self.open_process and self.open_process.is_alive():
-                return json.dumps({'result': 'already running'})
-            open_process = multiprocessing.Process(target=self.openDoorProcess)
-            open_process.start()
-        return json.dumps({'result': 'ok', 'value': 'null'})
+        if self.manlock.locked():
+            return json.dumps({'result': 'ok', 'value': 'locked'})
+        else:
+            with self.lock:
+                self.timeout.value = time
+                if self.close_process and self.close_process.is_alive() or self.open_process and self.open_process.is_alive():
+                    return json.dumps({'result': 'already running'})
+                open_process = multiprocessing.Process(target=self.openDoorProcess)
+                open_process.start()
+            return json.dumps({'result': 'ok', 'value': 'null'})
 
     def closeDoor(self, time=0):
-        with self.lock:
-            self.timeout.value = time
-            if self.close_process and self.close_process.is_alive() or self.open_process and self.open_process.is_alive():
-                return json.dumps({'result': 'already running'})
-            close_process = multiprocessing.Process(target=self.closeDoorProcess)
-            close_process.start()
-        return json.dumps({'result': 'ok', 'value': 'null'})
+        if self.manlock.locked():
+            return json.dumps({'result': 'ok', 'value': 'locked'})
+        else:
+            with self.lock:
+                self.timeout.value = time
+                if self.close_process and self.close_process.is_alive() or self.open_process and self.open_process.is_alive():
+                    return json.dumps({'result': 'already running'})
+                close_process = multiprocessing.Process(target=self.closeDoorProcess)
+                close_process.start()
+            return json.dumps({'result': 'ok', 'value': 'null'})
 
     def stopDoor(self,time=0):
         self.timeout.value = time
