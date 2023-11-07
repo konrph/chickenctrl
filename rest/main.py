@@ -61,7 +61,8 @@ class Rest:
             close_process.start()
         return json.dumps({'result': 'ok', 'value': 'null'})
 
-    def stopDoor(self):
+    def stopDoor(self,time=0):
+        self.timeout.value = time
         if self.open_process and self.open_process.is_alive():
             while self.open_process.is_alive():
                 self.open_process.terminate()  # Terminate the openDoor process
@@ -82,6 +83,11 @@ class Rest:
         with self.manlock:
             self.stopDoor()
             self.openDoor(time=self.calculate_next_event())
+        return json.dumps({'result': 'ok', 'value': None})
+
+
+    def resetTimer(self):
+        self.timeout.value = 0
         return json.dumps({'result': 'ok', 'value': None})
 
     def readLight(self):
@@ -146,10 +152,14 @@ class Rest:
         return abs(int(seconds_until_event))
 
 
+
 @app.route('/get/timeout')
 def get_timeout():
     return r.readTimeout()
 
+@app.route('/control/resettimeout')
+def reset_timeout():
+    return r.resetTimer()
 
 @app.route('/get/temp2')
 def get_temp2():
@@ -203,7 +213,7 @@ def control_door_close():
 
 @app.route('/control/door/stop')
 def control_door_stop():
-    return r.stopDoor()
+    return r.stopDoor(time=r.calculate_next_event())
 
 
 def main():
