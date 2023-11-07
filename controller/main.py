@@ -116,7 +116,7 @@ def main():
                     print('Close Door')
                     close_door()
 
-            time.sleep(10)  # 5 minutes
+            time.sleep(1)  # 5 minutes
         except KeyboardInterrupt:
             stop_door()
             break
